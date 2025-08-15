@@ -1,32 +1,47 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore'; // Import onSnapshot for real-time data
+import { auth, db } from '@/lib/firebase';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [profile, setProfile] = useState(null); // State to hold user profile data
 
+  // --- Redirect if not logged in ---
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
 
+  // --- Fetch user profile data from Firestore ---
+  useEffect(() => {
+    if (user) {
+      // Set up a real-time listener for the user's document
+      const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
+        if (doc.exists()) {
+          setProfile(doc.data());
+        } else {
+          console.log("No such document!");
+        }
+      });
+      // Clean up the listener when the component unmounts
+      return () => unsub();
+    }
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut(auth);
     router.push('/login');
   };
 
-  if (loading) {
+  if (loading || !profile) {
     return <div className="flex items-center justify-center h-screen text-accent text-xl">Loading Your Adventure...</div>;
-  }
-
-  if (!user) {
-    return null; // or a redirect component
   }
 
   return (
@@ -36,8 +51,13 @@ export default function DashboardPage() {
       </header>
       <main className="flex-grow p-6">
         <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
-        <p>Welcome, adventurer! Your user ID is:</p>
-        <p className="text-sm text-text-secondary break-all">{user.uid}</p>
+        
+        {/* --- Display Profile Data --- */}
+        <div className="bg-primary-bg p-4 rounded-lg">
+          <h3 className="text-lg font-bold text-accent">{profile.avatarName}</h3>
+          <p>Level: {profile.level}</p>
+          <p>XP: {profile.xp}</p>
+        </div>
         
         <button onClick={handleSignOut} className="mt-8 px-4 py-2 font-semibold text-text-primary bg-danger rounded-lg hover:bg-red-700 transition-colors">
           Sign Out
