@@ -1,4 +1,3 @@
-// src/app/(app)/settings/page.js
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,14 +36,11 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    // Also need to clear the session cookie
-    await fetch('/api/auth/session', { method: 'DELETE' });
     router.push('/login');
   };
 
   const handleConnectStrava = () => {
-    // THIS IS THE FIX: Use a full page redirect
-    window.location.href = '/api/auth';
+    window.location.href = '/api/strava/auth';
   };
   
   const handleDisconnectStrava = async () => {

@@ -1,4 +1,3 @@
-// src/app/(app)/dashboard/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,30 +11,23 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [activeQuest, setActiveQuest] = useState(null);
+  const [syncMessage, setSyncMessage] = useState(''); 
+  const [isSyncing, setIsSyncing] = useState(false);  
 
   useEffect(() => {
-    // THIS IS THE FIX:
-    // If the user object is not available, do nothing.
-    // This prevents an error when logging out.
     if (!user) return;
 
-    // --- Listener for the user's profile document ---
     const unsubProfile = onSnapshot(doc(db, "users", user.uid), (profileDoc) => {
       if (profileDoc.exists()) {
         const profileData = profileDoc.data();
         setProfile(profileData);
 
-        // --- Logic to fetch the active quest ---
         if (profileData.activeQuestId) {
           const questDocRef = doc(db, "quests", profileData.activeQuestId);
           const unsubQuest = onSnapshot(questDocRef, (questDoc) => {
-            if (questDoc.exists()) {
-              setActiveQuest({ id: questDoc.id, ...questDoc.data() });
-            } else {
-              setActiveQuest(null);
-            }
+            setActiveQuest(questDoc.exists() ? { id: questDoc.id, ...questDoc.data() } : null);
           });
-          return () => unsubQuest(); // Cleanup quest listener
+          return () => unsubQuest();
         } else {
           setActiveQuest(null);
         }
@@ -43,27 +35,56 @@ export default function DashboardPage() {
         console.error("User document not found!");
       }
     });
-    return () => unsubProfile(); // Cleanup profile listener
-  }, [user]); // The effect depends on the user object
 
-  // Show a loading state until the profile is loaded
+    return () => unsubProfile();
+  }, [user]);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage('Checking for new activities...');
+    try {
+      const response = await fetch('/api/strava/sync', { method: 'POST' });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Sync failed');
+      }
+
+      setSyncMessage(data.message);
+    } catch (error) {
+      setSyncMessage(error.message);
+    }
+    setIsSyncing(false);
+  };
+
   if (!profile) {
     return <div className="text-center text-text-secondary">Loading your adventure...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Welcome, {profile.avatarName}!</h2>
-        <div className="bg-primary-bg p-4 mt-2 rounded-lg space-y-2">
-          <p className="font-bold text-lg text-accent">Level: {profile.level}</p>
-          <div>
-            <label className="text-sm text-text-secondary">XP Progress</label>
-            <div className="w-full bg-tertiary-bg rounded-full h-4 mt-1">
-              <div className="bg-accent h-4 rounded-full" style={{ width: `${profile.xp}%` }}></div>
-            </div>
-            <p className="text-right text-sm text-text-secondary">{profile.xp} / 100</p>
+     
+        <button
+          onClick={handleSync}
+          disabled={isSyncing || !profile.strava}
+          className="px-3 py-1.5 text-sm font-semibold bg-accent rounded-lg hover:bg-red-500 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+        >
+          {isSyncing ? 'Syncing...' : 'Sync Activities'}
+        </button>
+      </div>
+
+      {syncMessage && <p className="text-center text-sm text-text-secondary p-2 bg-primary-bg rounded-md">{syncMessage}</p>}
+
+      <div className="bg-primary-bg p-4 rounded-lg space-y-2">
+        <p className="font-bold text-lg text-accent">Level: {profile.level}</p>
+        <div>
+          <label className="text-sm text-text-secondary">XP Progress</label>
+          <div className="w-full bg-tertiary-bg rounded-full h-4 mt-1">
+            <div className="bg-accent h-4 rounded-full" style={{ width: `${profile.xp}%` }}></div>
           </div>
+          <p className="text-right text-sm text-text-secondary">{profile.xp} / 100</p>
         </div>
       </div>
 

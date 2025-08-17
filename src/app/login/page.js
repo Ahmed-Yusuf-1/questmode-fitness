@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore'; // Import Firestore functions
-import { auth, db } from '@/lib/firebase'; // Import db from firebase config
+import { doc, setDoc } from 'firebase/firestore'; 
+import { auth, db } from '@/lib/firebase'; 
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
@@ -26,19 +26,15 @@ export default function LoginPage() {
     setError('');
     try {
       if (isLoginView) {
-        // --- Login Logic (unchanged) ---
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // --- Sign-Up Logic (UPDATED) ---
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const newUser = userCredential.user;
 
-        // Create a new document in the 'users' collection
-        // The document ID will be the user's unique UID from Authentication
         await setDoc(doc(db, "users", newUser.uid), {
           uid: newUser.uid,
           email: newUser.email,
-          avatarName: "New Adventurer", // Default name for new users
+          avatarName: "New Adventurer", 
           level: 1,
           xp: 0,
           createdAt: new Date(),

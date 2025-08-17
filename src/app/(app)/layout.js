@@ -1,4 +1,3 @@
-// src/app/(app)/layout.js
 'use client';
 
 import { useEffect } from 'react';
@@ -7,7 +6,6 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { HomeIcon, ShieldIcon, UserIcon, SettingsIcon } from '@/components/Icons';
 
-// --- Navigation Component ---
 const BottomNav = () => {
   const pathname = usePathname();
   const navItems = [
@@ -30,24 +28,20 @@ const BottomNav = () => {
 };
 
 
-// --- Main App Layout ---
 export default function AppLayout({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // If loading is finished and there's no user, redirect to login
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
 
-  // While loading or if no user, show a loading screen to prevent flicker
   if (loading || !user) {
     return <div className="flex items-center justify-center h-screen text-accent text-xl">Loading Your Adventure...</div>;
   }
 
-  // If user is logged in, show the app layout
   return (
     <div className="max-w-md mx-auto bg-secondary-bg h-screen flex flex-col">
       <header className="p-4 bg-tertiary-bg text-center shadow-md">

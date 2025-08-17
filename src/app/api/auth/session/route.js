@@ -1,13 +1,11 @@
-// src/app/api/auth/session/route.js
 import { cookies } from 'next/headers';
 import { adminAuth } from '@/lib/firebase-admin';
 
-// This line prevents the route from being cached.
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   const { idToken } = await request.json();
-  const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+  const expiresIn = 60 * 60 * 24 * 5 * 1000; 
 
   try {
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });

@@ -1,4 +1,3 @@
-// src/lib/firebase.js
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -12,7 +11,6 @@ const firebaseConfig = {
   appId: "1:99634800020:web:5f08836b3dbb767e679b81"
 };
 
-// Initialize Firebase
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);

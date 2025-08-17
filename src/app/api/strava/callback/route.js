@@ -1,8 +1,6 @@
-// src/app/api/strava/callback/route.js
 import { cookies } from 'next/headers';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 
-// This line prevents the route from being cached.
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {

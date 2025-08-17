@@ -1,6 +1,3 @@
-// src/app/api/strava/auth/route.js
-
-// This line prevents the route from being cached.
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
