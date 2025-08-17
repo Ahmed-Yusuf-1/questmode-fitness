@@ -15,7 +15,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // THIS IS THE FIX:
-    // Only proceed if the user object is available.
+    // If the user object is not available, do nothing.
+    // This prevents an error when logging out.
     if (!user) return;
 
     // --- Listener for the user's profile document ---
@@ -34,8 +35,7 @@ export default function DashboardPage() {
               setActiveQuest(null);
             }
           });
-          // Return a cleanup function for the quest listener
-          return () => unsubQuest();
+          return () => unsubQuest(); // Cleanup quest listener
         } else {
           setActiveQuest(null);
         }
@@ -43,10 +43,10 @@ export default function DashboardPage() {
         console.error("User document not found!");
       }
     });
-    // Return a cleanup function for the profile listener
-    return () => unsubProfile();
-  }, [user]); // The effect now depends on the user object
+    return () => unsubProfile(); // Cleanup profile listener
+  }, [user]); // The effect depends on the user object
 
+  // Show a loading state until the profile is loaded
   if (!profile) {
     return <div className="text-center text-text-secondary">Loading your adventure...</div>;
   }
