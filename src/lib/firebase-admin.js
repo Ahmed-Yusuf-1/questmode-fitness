@@ -1,18 +1,12 @@
-// src/lib/firebase-admin.js
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import path from 'path';
-import fs from 'fs';
 
-const serviceAccountPath = path.resolve(process.cwd(), 'firebase-admin-sdk.json');
-
-if (!fs.existsSync(serviceAccountPath)) {
-    throw new Error(`Could not find the Firebase Admin SDK key file at: ${serviceAccountPath}. Please ensure 'firebase-admin-sdk.json' is in the root of your project.`);
+if (!process.env.FIREBASE_ADMIN_SDK_JSON) {
+  throw new Error('The FIREBASE_ADMIN_SDK_JSON environment variable is not set.');
 }
 
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-
+const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_JSON);
 
 if (!admin.apps.length) {
   admin.initializeApp({
