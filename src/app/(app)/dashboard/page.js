@@ -12,64 +12,57 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [activeQuest, setActiveQuest] = useState(null);
-  const [loading, setLoading] = useState(true); // Add a loading state
 
-  // Combined effect to listen to profile and fetch active quest
   useEffect(() => {
-    if (user) {
-      // --- Listener for the user's profile document ---
-      const unsubProfile = onSnapshot(doc(db, "users", user.uid), (profileDoc) => {
-        if (profileDoc.exists()) {
-          const profileData = profileDoc.data();
-          setProfile(profileData);
+    // THIS IS THE FIX:
+    // Only proceed if the user object is available.
+    if (!user) return;
 
-          // --- Logic to fetch the active quest ---
-          // Check if the user has an active quest ID
-          if (profileData.activeQuestId) {
-            const questDocRef = doc(db, "quests", profileData.activeQuestId);
-            const unsubQuest = onSnapshot(questDocRef, (questDoc) => {
-              if (questDoc.exists()) {
-                setActiveQuest({ id: questDoc.id, ...questDoc.data() });
-              } else {
-                // Active quest ID exists but quest document doesn't
-                setActiveQuest(null); 
-              }
-              setLoading(false);
-            });
-            // Return a cleanup function for the quest listener
-            return () => unsubQuest(); 
-          } else {
-            // No active quest ID, so set active quest to null
-            setActiveQuest(null);
-            setLoading(false);
-          }
+    // --- Listener for the user's profile document ---
+    const unsubProfile = onSnapshot(doc(db, "users", user.uid), (profileDoc) => {
+      if (profileDoc.exists()) {
+        const profileData = profileDoc.data();
+        setProfile(profileData);
+
+        // --- Logic to fetch the active quest ---
+        if (profileData.activeQuestId) {
+          const questDocRef = doc(db, "quests", profileData.activeQuestId);
+          const unsubQuest = onSnapshot(questDocRef, (questDoc) => {
+            if (questDoc.exists()) {
+              setActiveQuest({ id: questDoc.id, ...questDoc.data() });
+            } else {
+              setActiveQuest(null);
+            }
+          });
+          // Return a cleanup function for the quest listener
+          return () => unsubQuest();
         } else {
-          console.error("User document not found!");
-          setLoading(false);
+          setActiveQuest(null);
         }
-      });
-      // Return a cleanup function for the profile listener
-      return () => unsubProfile();
-    }
-  }, [user]);
+      } else {
+        console.error("User document not found!");
+      }
+    });
+    // Return a cleanup function for the profile listener
+    return () => unsubProfile();
+  }, [user]); // The effect now depends on the user object
 
-  // Display a loading state until the initial data is fetched
-  if (loading) {
+  if (!profile) {
     return <div className="text-center text-text-secondary">Loading your adventure...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Welcome, {profile?.avatarName || 'Adventurer'}!</h2>
+        <h2 className="text-xl font-semibold">Welcome, {profile.avatarName}!</h2>
         <div className="bg-primary-bg p-4 mt-2 rounded-lg space-y-2">
-          <p className="font-bold text-lg text-accent">Level: {profile?.level}</p>
+          <p className="font-bold text-lg text-accent">Level: {profile.level}</p>
           <div>
             <label className="text-sm text-text-secondary">XP Progress</label>
             <div className="w-full bg-tertiary-bg rounded-full h-4 mt-1">
-              <div className="bg-accent h-4 rounded-full" style={{ width: `${profile?.xp || 0}%` }}></div>
+              <div className="bg-accent h-4 rounded-full" style={{ width: `${profile.xp}%` }}></div>
             </div>
-            <p className="text-right text-sm text-text-secondary">{profile?.xp || 0} / 100</p>
+            <p className="text-right text-sm text-text-secondary">{profile.xp} / 100</p>
           </div>
         </div>
       </div>

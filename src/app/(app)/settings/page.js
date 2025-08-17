@@ -44,7 +44,7 @@ export default function SettingsPage() {
 
   const handleConnectStrava = () => {
     // THIS IS THE FIX: Use a full page redirect
-    window.location.href = '/api/strava/auth';
+    window.location.href = '/api/auth';
   };
   
   const handleDisconnectStrava = async () => {
